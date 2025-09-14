@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اخبار متوسطة وثانوية بدر - News Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        'primary-dark': '#4A49C7',
+                    },
+                    fontFamily: {
+                        'arabic': ['Cairo', 'Segoe UI', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .news-card {
+            transition: all 0.3s ease;
+        }
+        
+        .news-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 640px) {
+            .news-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .news-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .news-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .breaking-news {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+            padding: 1rem;
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .news-content {
+            line-height: 1.8;
+        }
+        
+        .breaking-badge {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px #ff4757; }
+            to { box-shadow: 0 0 20px #ff4757, 0 0 30px #ff4757; }
+        }
+        
+        .breaking-ticker {
+            background: linear-gradient(90deg, #ff4757, #ff3838, #ff4757);
+            background-size: 200% 100%;
+            animation: moveGradient 3s ease-in-out infinite;
+        }
+        
+        @keyframes moveGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .category-filter {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .category-filter.active {
+            background: #5D5CDE;
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .category-filter:hover {
+            transform: translateY(-1px);
+        }
+        
+        .search-input {
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            box-shadow: 0 0 0 3px rgba(93, 92, 222, 0.1);
+        }
+        
+        .hero-features {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .loading-animation {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .text-shadow {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .refresh-btn {
+            animation: refreshPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes refreshPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section h2 {
+                font-size: 2rem;
+            }
+            
+            .hero-section p {
+                font-size: 1rem;
+            }
+            
+            .modal {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+    <!-- Breaking News Ticker -->
+    <div id="breakingTicker" class="breaking-ticker text-white py-2 px-4 text-center font-bold text-sm" style="display: none;">
+        <i class="fas fa-bolt ml-2"></i>
+        <span id="breakingText">أخبار عاجلة</span>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 md:py-6">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <i class="fas fa-newspaper text-primary text-2xl md:text-3xl"></i>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">اخبار متوسطة وثانوية بدر</h1>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm hidden sm:block">آخر الأخبار والمستجدات</p>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <button onclick="refreshData()" class="refresh-btn bg-primary hover:bg-primary-dark text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base">
+                        <i class="fas fa-sync-alt ml-2" id="refreshIcon"></i>
+                        <span class="hidden sm:inline">تحديث الأخبار</span>
+                        <span class="sm:hidden">تحديث</span>
+                    </button>
+                    <button onclick="showSearchModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base">
+                        <i class="fas fa-search ml-2"></i>
+                        <span class="hidden sm:inline">بحث</span>
+                        <span class="sm:hidden">بحث</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+
+
+    <!-- Status Bar -->
+    <div id="statusBar" class="bg-blue-500 text-white py-2 px-4 text-center text-sm" style="display: none;">
+        <i class="fas fa-info-circle ml-2"></i>
+        <span id="statusText">جاري تحميل آخر الأخبار...</span>
+    </div>
+
+    <!-- Category Filters -->
+    <section class="bg-white dark:bg-gray-800 py-4 md:py-6 sticky top-[72px] md:top-[88px] z-30 shadow-md border-b border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap gap-2 md:gap-3 justify-center">
+                <button class="category-filter active bg-gray-200 dark:bg-gray-700 px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap" data-category="all">
+                    جميع الأخبار
+                </button>
+                <button class="category-filter bg-gray-200 dark:bg-gray-700 px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap" data-category="سياسة">
+                    سياسة
+                </button>
+                <button class="category-filter bg-gray-200 dark:bg-gray-700 px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap" data-category="اقتصاد">
+                    اقتصاد
+                </button>
+                <button class="category-filter bg-gray-200 dark:bg-gray-700 px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap" data-category="رياضة">
+                    رياضة
+                </button>
+                <button class="category-filter bg-gray-200 dark:bg-gray-700 px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap" data-category="تكنولوجيا">
+                    تكنولوجيا
+                </button>
+                <button class="category-filter bg-gray-200 dark:bg-gray-700 px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap" data-category="صحة">
+                    صحة
+                </button>
+                <button class="category-filter bg-gray-200 dark:bg-gray-700 px-3 py-2 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap" data-category="ثقافة">
+                    ثقافة
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6 md:py-8">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12 md:py-16">
+            <div class="loading-animation rounded-full h-12 w-12 md:h-16 md:w-16 border-b-2 border-primary mx-auto mb-4"></div>
+            <p class="text-gray-600 dark:text-gray-400">جاري تحميل الأخبار...</p>
+        </div>
+
+        <!-- News Container -->
+        <div id="newsContainer" class="news-grid" style="display: none;">
+            <!-- News will be displayed here -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-12 md:py-16" style="display: none;">
+            <i class="fas fa-newspaper text-gray-400 text-4xl md:text-6xl mb-4 md:mb-6"></i>
+            <h3 class="text-xl md:text-2xl font-bold text-gray-600 dark:text-gray-400 mb-4">لا توجد أخبار متاحة</h3>
+            <p class="text-gray-500 dark:text-gray-500 mb-6 md:mb-8 text-sm md:text-base">يبدو أنه لا توجد أخبار في الوقت الحالي</p>
+            <button onclick="refreshData()" class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200">
+                <i class="fas fa-sync-alt ml-2"></i>
+                إعادة تحميل
+            </button>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="text-center py-12 md:py-16" style="display: none;">
+            <i class="fas fa-exclamation-triangle text-red-400 text-4xl md:text-6xl mb-4 md:mb-6"></i>
+            <h3 class="text-xl md:text-2xl font-bold text-gray-600 dark:text-gray-400 mb-4">خطأ في تحميل الأخبار</h3>
+            <p class="text-gray-500 dark:text-gray-500 mb-6 md:mb-8 text-sm md:text-base">تعذر تحميل البيانات. تأكد من وجود ملف البيانات في مجلد الموقع.</p>
+            <button onclick="refreshData()" class="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200">
+                <i class="fas fa-sync-alt ml-2"></i>
+                إعادة المحاولة
+            </button>
+        </div>
+
+        <!-- No Results State -->
+        <div id="noResultsState" class="text-center py-12 md:py-16" style="display: none;">
+            <i class="fas fa-search text-gray-400 text-4xl md:text-6xl mb-4 md:mb-6"></i>
+            <h3 class="text-xl md:text-2xl font-bold text-gray-600 dark:text-gray-400 mb-4">لا توجد نتائج</h3>
+            <p class="text-gray-500 dark:text-gray-500 text-sm md:text-base">لم يتم العثور على أخبار تطابق البحث أو الفئة المحددة</p>
+        </div>
+    </main>
+
+    <!-- News Detail Modal -->
+    <div id="newsDetailModal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-4 md:p-8 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4 md:mb-6">
+                <h3 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">تفاصيل الخبر</h3>
+                <button onclick="hideNewsDetailModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl md:text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="newsDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div id="searchModal" class="modal">
+        <div class="bg-white dark:bg-gray-800 p-4 md:p-8 rounded-2xl shadow-2xl max-w-lg w-full">
+            <div class="flex items-center justify-between mb-4 md:mb-6">
+                <h3 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white">البحث في الأخبار</h3>
+                <button onclick="hideSearchModal()" class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl md:text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <input type="text" id="searchInput" class="search-input w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white text-base" placeholder="ابحث في العناوين والمحتوى...">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="performSearch()" class="flex-1 bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200">
+                        <i class="fas fa-search ml-2"></i>
+                        بحث
+                    </button>
+                    <button onclick="clearSearch()" class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                        مسح
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 dark:bg-gray-900 text-white py-8 md:py-12 mt-16">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex items-center justify-center mb-4">
+                <i class="fas fa-newspaper text-primary text-2xl ml-3"></i>
+                <h3 class="text-xl font-bold">اخبار متوسطة وثانوية بدر</h3>
+            </div>
+            <p class="text-gray-400 mb-4">مصدرك الموثوق لآخر الأخبار والمستجدات</p>
+            <div class="text-sm text-gray-500">
+                © 2024 موقع الأخبار. جميع الحقوق محفوظة.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark mode handling
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        let newsData = [];
+        let filteredNews = [];
+        let currentCategory = 'all';
+        let currentSearchTerm = '';
+
+        // Auto load data from JSON file
+        async function loadDataFromFile() {
+            try {
+                showLoadingState();
+                showStatusBar('جاري تحميل آخر الأخبار...');
+                
+                const response = await fetch('./news-data.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.news && Array.isArray(data.news)) {
+                    newsData = data.news;
+                    filteredNews = [...newsData];
+                    renderNews();
+                    updateBreakingTicker();
+                    hideStatusBar();
+                    
+                    if (newsData.length > 0) {
+                        showStatusBar(`تم تحميل ${newsData.length} خبر بنجاح!`, 'success');
+                        setTimeout(hideStatusBar, 3000);
+                    }
+                } else {
+                    throw new Error('Invalid data format');
+                }
+            } catch (error) {
+                console.error('Error loading news data:', error);
+                showErrorState();
+                hideStatusBar();
+                showStatusBar('فشل في تحميل البيانات', 'error');
+                setTimeout(hideStatusBar, 3000);
+            }
+        }
+
+        // Refresh data
+        async function refreshData() {
+            const refreshIcon = document.getElementById('refreshIcon');
+            refreshIcon.classList.add('loading-animation');
+            
+            try {
+                await loadDataFromFile();
+            } finally {
+                setTimeout(() => {
+                    refreshIcon.classList.remove('loading-animation');
+                }, 1000);
+            }
+        }
+
+        // Show/Hide status bar
+        function showStatusBar(message, type = 'info') {
+            const statusBar = document.getElementById('statusBar');
+            const statusText = document.getElementById('statusText');
+            
+            statusText.textContent = message;
+            
+            // Set color based on type
+            statusBar.className = type === 'success' ? 'bg-green-500 text-white py-2 px-4 text-center text-sm' :
+                                  type === 'error' ? 'bg-red-500 text-white py-2 px-4 text-center text-sm' :
+                                  'bg-blue-500 text-white py-2 px-4 text-center text-sm';
+            
+            statusBar.style.display = 'block';
+        }
+
+        function hideStatusBar() {
+            document.getElementById('statusBar').style.display = 'none';
+        }
+
+        // Show/Hide states
+        function showLoadingState() {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('newsContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('noResultsState').style.display = 'none';
+        }
+
+        function showEmptyState() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('newsContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('noResultsState').style.display = 'none';
+        }
+
+        function showErrorState() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('newsContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('noResultsState').style.display = 'none';
+        }
+
+        function showNoResultsState() {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('newsContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('noResultsState').style.display = 'block';
+        }
+
+        // Render News
+        function renderNews() {
+            const container = document.getElementById('newsContainer');
+            
+            if (filteredNews.length === 0) {
+                if (newsData.length === 0) {
+                    showEmptyState();
+                } else {
+                    showNoResultsState();
+                }
+                return;
+            }
+            
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'none';
+            document.getElementById('noResultsState').style.display = 'none';
+            document.getElementById('newsContainer').style.display = 'grid';
+            
+            const newsHTML = filteredNews.map(news => `
+                <article class="news-card bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer" onclick="showNewsDetailModal(${news.id})">
+                    <div class="p-4 md:p-6">
+                        <div class="flex items-center justify-between mb-3 md:mb-4">
+                            <span class="bg-primary text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-semibold">${news.category}</span>
+                            ${news.isBreaking ? '<span class="breaking-badge text-white px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-bold"><i class="fas fa-bolt ml-1"></i>عاجل</span>' : ''}
+                        </div>
+                        
+                        <h2 class="text-lg md:text-xl font-bold text-gray-800 dark:text-white mb-3 leading-tight hover:text-primary transition-colors duration-200">
+                            ${news.title}
+                        </h2>
+                        
+                        <p class="text-gray-600 dark:text-gray-300 mb-4 text-sm md:text-base line-clamp-3">
+                            ${news.content.length > 120 ? news.content.substring(0, 120) + '...' : news.content}
+                        </p>
+                        
+                        <div class="flex items-center justify-between text-xs md:text-sm text-gray-500 dark:text-gray-400">
+                            <div class="flex items-center">
+                                <i class="fas fa-user ml-2"></i>
+                                <span class="truncate max-w-[100px] md:max-w-none">${news.author}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock ml-2"></i>
+                                <span>${news.time}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs md:text-sm text-gray-500 dark:text-gray-400">${news.date}</span>
+                                <button class="text-primary hover:text-primary-dark font-semibold text-xs md:text-sm transition-colors duration-200">
+                                    اقرأ المزيد
+                                    <i class="fas fa-arrow-left mr-1"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+            
+            container.innerHTML = newsHTML;
+        }
+
+        // Update Breaking News Ticker
+        function updateBreakingTicker() {
+            const breakingNews = newsData.filter(news => news.isBreaking);
+            const ticker = document.getElementById('breakingTicker');
+            const tickerText = document.getElementById('breakingText');
+            
+            if (breakingNews.length > 0) {
+                const latestBreaking = breakingNews[0];
+                tickerText.textContent = `عاجل: ${latestBreaking.title}`;
+                ticker.style.display = 'block';
+            } else {
+                ticker.style.display = 'none';
+            }
+        }
+
+        // Show News Detail Modal
+        function showNewsDetailModal(newsId) {
+            const news = newsData.find(n => n.id === newsId);
+            if (news) {
+                const content = `
+                    <div class="space-y-4 md:space-y-6">
+                        ${news.isBreaking ? '<div class="breaking-badge text-white px-3 py-2 md:px-4 md:py-2 rounded-full text-sm font-bold inline-block mb-4"><i class="fas fa-bolt ml-1"></i>خبر عاجل</div>' : ''}
+                        <div>
+                            <span class="bg-primary text-white px-3 py-1 rounded-full text-sm font-semibold">${news.category}</span>
+                        </div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white leading-tight">${news.title}</h1>
+                        <div class="flex flex-wrap items-center text-gray-600 dark:text-gray-400 text-sm gap-2 md:gap-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-calendar-alt ml-2"></i>
+                                <span>${news.date}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-clock ml-2"></i>
+                                <span>${news.time}</span>
+                            </div>
+                            ${news.author ? `<div class="flex items-center"><i class="fas fa-user ml-2"></i><span>${news.author}</span></div>` : ''}
+                        </div>
+                        <div class="news-content text-gray-700 dark:text-gray-300 text-base md:text-lg whitespace-pre-line">${news.content}</div>
+                        <div class="border-t border-gray-200 dark:border-gray-600 pt-4">
+                            <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-eye ml-2"></i>
+                                <span>تم النشر في ${news.date} - ${news.time}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('newsDetailContent').innerHTML = content;
+                document.getElementById('newsDetailModal').classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function hideNewsDetailModal() {
+            document.getElementById('newsDetailModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Search functionality
+        function showSearchModal() {
+            document.getElementById('searchModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => document.getElementById('searchInput').focus(), 100);
+        }
+
+        function hideSearchModal() {
+            document.getElementById('searchModal').classList.remove('show');
+            document.body.style.overflow = 'auto';
+        }
+
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+            currentSearchTerm = searchTerm;
+            filterNews();
+            hideSearchModal();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            currentSearchTerm = '';
+            filterNews();
+        }
+
+        // Category filtering
+        function filterNews() {
+            let filtered = [...newsData];
+            
+            // Filter by category
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(news => news.category === currentCategory);
+            }
+            
+            // Filter by search term
+            if (currentSearchTerm) {
+                filtered = filtered.filter(news => 
+                    news.title.toLowerCase().includes(currentSearchTerm) ||
+                    news.content.toLowerCase().includes(currentSearchTerm)
+                );
+            }
+            
+            filteredNews = filtered;
+            renderNews();
+        }
+
+        // Category filter event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoryFilters = document.querySelectorAll('.category-filter');
+            
+            categoryFilters.forEach(filter => {
+                filter.addEventListener('click', function() {
+                    // Remove active class from all filters
+                    categoryFilters.forEach(f => f.classList.remove('active'));
+                    
+                    // Add active class to clicked filter
+                    this.classList.add('active');
+                    
+                    // Update current category
+                    currentCategory = this.dataset.category;
+                    
+                    // Filter news
+                    filterNews();
+                });
+            });
+            
+            // Search on Enter key
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Auto load data when page loads
+            loadDataFromFile();
+        });
+    </script>
+</body>
+</html>
