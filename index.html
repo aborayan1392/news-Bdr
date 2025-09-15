@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اخبار متوسطة وثانوية بدر - News Portal</title>
+    <title>موقع الأخبار - News Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -210,7 +210,7 @@
                 <div class="flex items-center space-x-4 space-x-reverse">
                     <i class="fas fa-newspaper text-primary text-2xl md:text-3xl"></i>
                     <div>
-                        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">اخبار متوسطة وثانوية بدر</h1>
+                        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-white">موقع الأخبار</h1>
                         <p class="text-gray-600 dark:text-gray-400 text-sm hidden sm:block">آخر الأخبار والمستجدات</p>
                     </div>
                 </div>
@@ -229,8 +229,6 @@
             </div>
         </div>
     </header>
-
-
 
     <!-- Status Bar -->
     <div id="statusBar" class="bg-blue-500 text-white py-2 px-4 text-center text-sm" style="display: none;">
@@ -352,7 +350,7 @@
         <div class="container mx-auto px-4 text-center">
             <div class="flex items-center justify-center mb-4">
                 <i class="fas fa-newspaper text-primary text-2xl ml-3"></i>
-                <h3 class="text-xl font-bold">اخبار متوسطة وثانوية بدر</h3>
+                <h3 class="text-xl font-bold">موقع الأخبار</h3>
             </div>
             <p class="text-gray-400 mb-4">مصدرك الموثوق لآخر الأخبار والمستجدات</p>
             <div class="text-sm text-gray-500">
@@ -378,6 +376,56 @@
         let filteredNews = [];
         let currentCategory = 'all';
         let currentSearchTerm = '';
+
+        // Convert URLs in text to clickable links
+        function linkifyText(text) {
+            // Regex to match URLs (http, https, www)
+            const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
+            
+            return text.replace(urlRegex, function(url) {
+                let href = url;
+                // Add protocol if missing
+                if (url.startsWith('www.')) {
+                    href = 'https://' + url;
+                }
+                
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 underline font-medium transition-colors duration-200" onclick="event.stopPropagation();">${url}</a>`;
+            });
+        }
+
+        // Escape HTML to prevent XSS but preserve links
+        function escapeHtmlButKeepLinks(text) {
+            // First escape all HTML
+            const escaped = text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            
+            // Then convert URLs to links
+            return linkifyText(escaped);
+        }
+
+        // Format news content for display
+        function formatNewsContent(content, isPreview = false) {
+            let formattedContent = escapeHtmlButKeepLinks(content);
+            
+            if (isPreview) {
+                // For preview, truncate after link conversion
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = formattedContent;
+                const textContent = tempDiv.textContent || tempDiv.innerText || '';
+                
+                if (textContent.length > 120) {
+                    // Truncate the original text and re-linkify
+                    const truncated = content.substring(0, 120) + '...';
+                    return escapeHtmlButKeepLinks(truncated);
+                }
+            }
+            
+            return formattedContent;
+        }
 
         // Auto load data from JSON file
         async function loadDataFromFile() {
@@ -513,9 +561,9 @@
                             ${news.title}
                         </h2>
                         
-                        <p class="text-gray-600 dark:text-gray-300 mb-4 text-sm md:text-base line-clamp-3">
-                            ${news.content.length > 120 ? news.content.substring(0, 120) + '...' : news.content}
-                        </p>
+                        <div class="text-gray-600 dark:text-gray-300 mb-4 text-sm md:text-base line-clamp-3">
+                            ${formatNewsContent(news.content, true)}
+                        </div>
                         
                         <div class="flex items-center justify-between text-xs md:text-sm text-gray-500 dark:text-gray-400">
                             <div class="flex items-center">
@@ -581,7 +629,7 @@
                             </div>
                             ${news.author ? `<div class="flex items-center"><i class="fas fa-user ml-2"></i><span>${news.author}</span></div>` : ''}
                         </div>
-                        <div class="news-content text-gray-700 dark:text-gray-300 text-base md:text-lg whitespace-pre-line">${news.content}</div>
+                        <div class="news-content text-gray-700 dark:text-gray-300 text-base md:text-lg whitespace-pre-line">${formatNewsContent(news.content)}</div>
                         <div class="border-t border-gray-200 dark:border-gray-600 pt-4">
                             <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
                                 <i class="fas fa-eye ml-2"></i>
